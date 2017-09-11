@@ -4,22 +4,22 @@ require(Kaphi)
 setwd('~/git/Report3')
 
 # Constant Coalescent Model
-config <- load.config('YAML/coalescent.yaml')
+config <- load.config('Config/coalescent.yaml')
 config <- set.model(config, 'const.coalescent')
 
 # Yule Model
-config <- load.config('YAML/yule.yaml')
+config <- load.config('Config/yule.yaml')
 config <- set.model(config, 'yule')
 
 # Birth-Death Model
-config <- load.config('YAML/bd.yaml')
+config <- load.config('Config/bd.yaml')
 config <- set.model(config, 'bd')
 
 # Set RNG seed
 set.seed(10)
 
 # Read in & process cyanobacteria tree
-obs.tree <- read.tree(file='cyano.nwk')
+obs.tree <- read.tree(file='Data/cyano.nwk')
 obs.tree <- parse.input.tree(obs.tree, config)
 
 # Initialize SMC workspace
@@ -30,7 +30,7 @@ ws <- init.workspace(obs.tree, config)
 res <- run.smc(ws, trace.file='.tsv', model='', verbose=TRUE)
 
 # Read contents of trace file to table
-trace <- read.table('.tsv', header=T, sep='\t')
+trace <- read.table('Data/cyano_bd.tsv', header=T, sep='\t')
 
 
 #------------------------------------------------------------------------------
@@ -48,51 +48,47 @@ plot(
   cex.lab=1,
   main='Trajectory of Mean Lambda (Yule Model, 1000 particles)'
 )
-#abline(h=0.16, lty=2)
 
 par(mar=c(5,5,2,2))
 plot(
   sapply(split(trace$lambda*trace$weight, trace$n), sum), 
-  ylim=c(0, 2), 
+  ylim=c(0, 1), 
   type='o',
   xlab='Iteration', 
   ylab='Mean lambda',
   cex.lab=1,
   main='Trajectory of Mean Lambda (Birth-Death Model, 1000 particles)'
 )
-#abline(h=0.16, lty=2)
 
 par(mar=c(5,5,2,2))
 plot(
   sapply(split(trace$mu*trace$weight, trace$n), sum), 
-  ylim=c(0, 2), 
+  ylim=c(0, 1), 
   type='o',
   xlab='Iteration', 
   ylab='Mean mu',
   cex.lab=1,
   main='Trajectory of Mean Mu (Birth-Death Model, 1000 particles)'
 )
-#abline(h=0.16, lty=2)
 
 
 #------------------------------------------------------------------------------
 # Use kernel densities to visualize posterior approximations of lambda (Yule)
 
-pal <- rainbow(n=5, start=0, end=0.5, v=1, s=1)
+pal <- rainbow(n=6, start=0, end=0.8, v=1, s=1)
 par(mar=c(5,5,2,2))
-#png('bd-dist01.png')
 plot(
   density(trace$lambda[trace$n==1], weights=trace$weight[trace$n==1]),
   xlim=c(0, 1.5),
   col=pal[1],
   lwd=2,
-  main='Birth-Death',
+  main='Posterior Approximations of Lambda (Yule Model, 1000 Particles)',
   xlab='Lambda',
   cex.lab=1.2,
-  ylim=c(0, 19)
+  ylim=c(0, 17)
 )
 
-for (i in 1:4) {
+for (i in 1:5) {
   temp <- trace[trace$n==i*20,]
   lines(density(temp$lambda, weights=temp$weight),
         col=pal[i+1], lwd=1.5)
@@ -100,122 +96,107 @@ for (i in 1:4) {
 # final estimates
 lines(density(trace$lambda[trace$n==max(trace$n)], weights=trace$weight[trace$n==max(trace$n)]),
       col='black', lwd=2)
-abline(v=0.1, lty=3, col='red')
+#abline(v=0.1, lty=3, col='red')
 
 # show the prior distribution
 x <- seq(0, 2, 0.01)
 y <- function(x) {arg.prior <- x; eval(parse(text=config$prior.densities[["lambda"]]))}
 lines(x, y(x), lty=5)
 
-# show posterior distribution (work in progress)
-node.heights <- rev(branching.times(obs.tree))
-
 # make a legend
 legend(
-  x=.8, y=19,
-  legend=c('prior', 'n=1', 'n=20', 'n=40', 'n=60', 'n=80', 'n=101(final)', 'true lambda(0.1)'),
-  lty=c(5,rep(1,6),3),
-  col=c('black', pal, 'black', 'red'),
-  lwd=c(1,2,rep(1.5,4),2,0.75),
+  x=.7, y=17,
+  legend=c('prior', 'n=1', 'n=20', 'n=40', 'n=60', 'n=80', 'n=100', 'n=108 (final)'),
+  lty=c(5,rep(1,7)),
+  col=c('black', pal, 'black'),
+  lwd=c(1,2,rep(1.5,4),2),
   seg.len=2
 )
-#dev.off()
 
 
 #------------------------------------------------------------------------------
 # Use kernel densities to visualize posterior approximations of lambda (BD)
 
-pal <- rainbow(n=5, start=0, end=0.5, v=1, s=1)
+pal <- rainbow(n=7, start=0, end=0.8, v=1, s=1)
 par(mar=c(5,5,2,2))
-#png('bd-dist01.png')
 plot(
 density(trace$lambda[trace$n==1], weights=trace$weight[trace$n==1]),
 xlim=c(0, 1.5),
 col=pal[1],
 lwd=2,
-main='Birth-Death',
+main='Posterior Approximations of Lambda (Birth-Death Model, 1000 Particles)',
 xlab='Lambda',
 cex.lab=1.2,
-ylim=c(0, 19)
+ylim=c(0, 8)
 )
 
-for (i in 1:4) {
-    temp <- trace[trace$n==i*20,]
+for (i in 1:6) {
+    temp <- trace[trace$n==i*10,]
     lines(density(temp$lambda, weights=temp$weight),
     col=pal[i+1], lwd=1.5)
 }
 # final estimates
 lines(density(trace$lambda[trace$n==max(trace$n)], weights=trace$weight[trace$n==max(trace$n)]),
 col='black', lwd=2)
-abline(v=0.1, lty=3, col='red')
 
 # show the prior distribution
 x <- seq(0, 2, 0.01)
 y <- function(x) {arg.prior <- x; eval(parse(text=config$prior.densities[["lambda"]]))}
 lines(x, y(x), lty=5)
 
-# show posterior distribution (work in progress)
-node.heights <- rev(branching.times(obs.tree))
-
 # make a legend
 legend(
-x=.8, y=19,
-legend=c('prior', 'n=1', 'n=20', 'n=40', 'n=60', 'n=80', 'n=101(final)', 'true lambda(0.1)'),
-lty=c(5,rep(1,6),3),
-col=c('black', pal, 'black', 'red'),
-lwd=c(1,2,rep(1.5,4),2,0.75),
+x=.8, y=8,
+legend=c('prior', 'n=1', 'n=10', 'n=20', 'n=30', 'n=40', 'n=50', 'n=60', 'n=72(final)'),
+lty=c(5,rep(1,8)),
+col=c('black', pal, 'black'),
+lwd=c(1,2,rep(1.5,6),2),
 seg.len=2
 )
-#dev.off()
 
 
 #------------------------------------------------------------------------------
 # Use kernel densities to visualize posterior approximations of mu (BD)
 
-pal <- rainbow(n=5, start=0, end=0.5, v=1, s=1)
+pal <- rainbow(n=7, start=0, end=0.8, v=1, s=1)
 par(mar=c(5,5,2,2))
-#png('bd-dist01.png')
 plot(
-density(trace$mu[trace$n==1], weights=trace$weight[trace$n==1]),
-xlim=c(0, 1.5),
-col=pal[1],
-lwd=2,
-main='Birth-Death',
-xlab='Mu',
-cex.lab=1.2,
-ylim=c(0, 22)
+  density(trace$mu[trace$n==1], weights=trace$weight[trace$n==1]),
+  xlim=c(0, 1.5),
+  col=pal[1],
+  lwd=2,
+  main='Posterior Approximations of Mu (Birth-Death Model, 1000 Particles)',
+  xlab='Mu',
+  cex.lab=1.2,
+  ylim=c(0, 8)
 )
 
-for (i in 1:4) {
-    temp <- trace[trace$n==i*20,]
-    lines(density(temp$mu, weights=temp$weight),
-    col=pal[i+1], lwd=1.5)
+for (i in 1:6) {
+  temp <- trace[trace$n==i*10,]
+  lines(density(temp$mu, weights=temp$weight),
+        col=pal[i+1], lwd=1.5)
 }
 # final estimates
 lines(density(trace$mu[trace$n==max(trace$n)], weights=trace$weight[trace$n==max(trace$n)]),
-col='black', lwd=2)
-abline(v=0.003, lty=3, col='red')
+      col='black', lwd=2)
 
 # show the prior distribution
 x <- seq(0, 2, 0.01)
 y <- function(x) {arg.prior <- x; eval(parse(text=config$prior.densities[["mu"]]))}
 lines(x, y(x), lty=5)
 
-# show posterior distribution (work in progress)
-node.heights <- rev(branching.times(obs.tree))
-
 # make a legend
 legend(
-x=0.8, y=22,
-legend=c('prior', 'n=1', 'n=20', 'n=40', 'n=60', 'n=80', 'n=101(final)', 'true mu(0.003)'),
-lty=c(5,rep(1,6),3),
-col=c('black', pal, 'black', 'red'),
-lwd=c(1,2,rep(1.5,2),2,0.75),
-seg.len=2
+  x=.8, y=8,
+  legend=c('prior', 'n=1', 'n=10', 'n=20', 'n=30', 'n=40', 'n=50', 'n=60', 'n=72 (final)'),
+  lty=c(5,rep(1,8)),
+  col=c('black', pal, 'black'),
+  lwd=c(1,2,rep(1.5,6),2),
+  seg.len=2
 )
-#dev.off()
 
 
+#------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 # Visualize parameter identifiability
 
