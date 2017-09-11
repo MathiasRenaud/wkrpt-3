@@ -1,2 +1,2 @@
 # Report3
-Data for co-op work report 3 (Poon Lab)
+University of Waterloo Co-op Work Report 3 (Poon Lab)
