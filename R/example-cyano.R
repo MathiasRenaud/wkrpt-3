@@ -1,3 +1,6 @@
+# R scripts for all the anaylses and figures presented in the report. 
+# Based on example files from Kaphi(github.com/PoonLab/Kaphi).
+
 require(Kaphi)
 
 # If working from GUI
