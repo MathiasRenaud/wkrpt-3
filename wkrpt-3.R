@@ -3,13 +3,9 @@
 
 require(Kaphi)
 
-# If working from GUI
 setwd('~/git/wkrpt-3')
 
-# Constant Coalescent Model
-config <- load.config('Config/coalescent.yaml')
-config <- set.model(config, 'const.coalescent')
-
+# Choose one of the following speciation models:
 # Yule Model
 config <- load.config('Config/yule.yaml')
 config <- set.model(config, 'yule')
@@ -17,6 +13,10 @@ config <- set.model(config, 'yule')
 # Birth-Death Model
 config <- load.config('Config/bd.yaml')
 config <- set.model(config, 'bd')
+
+# Constant Coalescent Model
+config <- load.config('Config/coalescent.yaml')
+config <- set.model(config, 'const.coalescent')
 
 # Set RNG seed
 set.seed(10)
@@ -32,15 +32,16 @@ ws <- init.workspace(obs.tree, config)
 # Remember to update model and filename!
 res <- run.smc(ws, trace.file='.tsv', model='', verbose=TRUE)
 
-# Read contents of trace file to table
+# Read contents of trace.file to table
 trace <- read.table('Data/cyano_bd.tsv', header=T, sep='\t')
 
 
 #------------------------------------------------------------------------------
-#                               Figures                                   
+#                                   Figures                                   
 #------------------------------------------------------------------------------
 # Plot trajectory of mean estimate of lambda and mu
 
+# Yule model (lambda)
 par(mar=c(5,5,2,2))
 plot(
   sapply(split(trace$lambda*trace$weight, trace$n), sum), 
@@ -52,6 +53,7 @@ plot(
   main='Trajectory of Mean Lambda (Yule Model, 1000 particles)'
 )
 
+# Birth-Death model (lambda)
 par(mar=c(5,5,2,2))
 plot(
   sapply(split(trace$lambda*trace$weight, trace$n), sum), 
@@ -63,6 +65,7 @@ plot(
   main='Trajectory of Mean Lambda (Birth-Death Model, 1000 particles)'
 )
 
+# Birth-Death model (mu)
 par(mar=c(5,5,2,2))
 plot(
   sapply(split(trace$mu*trace$weight, trace$n), sum), 
@@ -118,7 +121,7 @@ legend(
 
 
 #------------------------------------------------------------------------------
-# Use kernel densities to visualize posterior approximations of lambda (BD)
+# Use kernel densities to visualize posterior approximations of lambda (Birth-Death)
 
 pal <- rainbow(n=7, start=0, end=0.8, v=1, s=1)
 par(mar=c(5,5,2,2))
@@ -159,7 +162,7 @@ seg.len=2
 
 
 #------------------------------------------------------------------------------
-# Use kernel densities to visualize posterior approximations of mu (BD)
+# Use kernel densities to visualize posterior approximations of mu (Birth-Death)
 
 pal <- rainbow(n=7, start=0, end=0.8, v=1, s=1)
 par(mar=c(5,5,2,2))
@@ -198,8 +201,8 @@ legend(
   seg.len=2
 )
 
-
 #------------------------------------------------------------------------------
+# Assessing parameter identifiability and confounding of lambda and mu
 #------------------------------------------------------------------------------
 # Visualize parameter identifiability
 
