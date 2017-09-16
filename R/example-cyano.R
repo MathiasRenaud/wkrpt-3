@@ -1,7 +1,10 @@
+# R scripts for all the anaylses and figures presented in the report. 
+# Based on example files from Kaphi(github.com/PoonLab/Kaphi).
+
 require(Kaphi)
 
 # If working from GUI
-setwd('~/git/Report3')
+setwd('~/git/wkrpt-3')
 
 # Constant Coalescent Model
 config <- load.config('Config/coalescent.yaml')
